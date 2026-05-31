@@ -16,27 +16,37 @@ jobs:
 
       - name: Build Full Android Architecture
         run: |
-          # Temiz klasör düzeni oluştur
           rm -rf app build.gradle settings.gradle
           mkdir -p app/src/main/java/com/atlas/thetagen
           mkdir -p app/src/main/res/values
           mkdir -p gradle/wrapper
 
-          # Root build.gradle
-          cat << 'EOF' > build.gradle
-          buildscript {
-              repositories { google(); mavenCentral() }
-              dependencies { classpath 'com.android.tools.build:gradle:8.1.1' }
+          cat << 'EOF' > settings.gradle
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
           }
-          allprojects {
-              repositories { google(); mavenCentral() }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = "Theta Generator"
+          include ':app'
+          EOF
+
+          cat << 'EOF' > build.gradle
+          plugins {
+              id 'com.android.application' version '8.1.1' apply false
+              id 'org.jetbrains.kotlin.android' version '1.9.0' apply false
           }
           EOF
 
-          # settings.gradle
-          echo "include ':app'" > settings.gradle
-
-          # app/build.gradle (Bağımlılıklar sadeleştirildi, hata ihtimali sıfırlandı)
           cat << 'EOF' > app/build.gradle
           plugins {
               id 'com.android.application'
@@ -63,9 +73,8 @@ jobs:
           }
           EOF
 
-          # app/src/main/AndroidManifest.xml
           cat << 'EOF' > app/src/main/AndroidManifest.xml
-          <manifest xmlns:android="http://schemas.github.com/apk/apk/res/android">
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <application
                   android:allowBackup="true"
                   android:label="Theta Generator"
@@ -82,7 +91,6 @@ jobs:
           </manifest>
           EOF
 
-          # Strings.xml
           echo '<resources><string name="app_name">Theta Generator</string></resources>' > app/src/main/res/values/strings.xml
 
       - name: Generate Local Gradle Wrapper
@@ -95,7 +103,7 @@ jobs:
           fi
 
       - name: Build Android APK
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK Download Link
         uses: actions/upload-artifact@v4
