@@ -4,6 +4,8 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.os.Bundle
+import android.text.InputType
+import android.view.Gravity
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -17,38 +19,35 @@ class MainActivity : AppCompatActivity() {
     private var isPlaying = false
     private var audioTrack: AudioTrack? = null
     
-    // Varsayılan taşıyıcı frekans (Carrier) ve hedef fark frekansı
     private var baseFrequency = 200.0 
-    private var targetDifference = 5.0 // Varsayılan Theta (5 Hz)
+    private var targetDifference = 5.0 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Ana Arayüz Düzeni
         val rootLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            gravity = android.view.Gravity.CENTER_HORIZONTAL
+            gravity = Gravity.CENTER_HORIZONTAL
             setBackgroundColor(0xFF121212.toInt())
             setPadding(40, 60, 40, 40)
         }
 
-        // Durum Göstergesi Bilgisi
         val infoTextView = TextView(this).apply {
             text = "Mod: Beklemede\nSol: 0 Hz | Sağ: 0 Hz (Fark: 0 Hz)"
             setTextColor(0xFF888888.toInt())
             textSize = 16f
-            gravity = android.view.Gravity.CENTER
+            gravity = Gravity.CENTER
             setPadding(0, 0, 0, 40)
         }
         rootLayout.addView(infoTextView)
 
-        // Taslak Butonları Fonksiyonu
         fun createPresetButton(title: String, diff: Double, description: String) {
             val btn = Button(this).apply {
                 text = "$title ($diff Hz) - $description"
                 setTextColor(0xFFFFFFFF.toInt())
                 setBackgroundColor(0xFF1E1E1E.toInt())
                 setPadding(20, 30, 20, 30)
+                
                 val params = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -65,14 +64,12 @@ class MainActivity : AppCompatActivity() {
             rootLayout.addView(btn)
         }
 
-        // Beyin Dalgası Taslakları (Presets)
         createPresetButton("DELTA", 2.5, "Derin Uyku & Yenilenme")
         createPresetButton("THETA", 5.0, "Bilinçaltı & Derin Meditasyon")
         createPresetButton("ALPHA", 10.0, "Hafif Odak & Rahatlama")
         createPresetButton("BETA", 20.0, "Aktif Düşünme & Analitik Analiz")
         createPresetButton("GAMMA", 40.0, "Yüksek İşlem & Maksimum Odak")
 
-        // Manuel Giriş Alanı Başlığı
         val manualTitle = TextView(this).apply {
             text = "\nVEYA MANUEL HEDEF FREKANS GİRİN (Hz):"
             setTextColor(0xFFBB86FC.toInt())
@@ -81,19 +78,22 @@ class MainActivity : AppCompatActivity() {
         }
         rootLayout.addView(manualTitle)
 
-        // Manuel Giriş Düzeni
         val manualLayout = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = android.view.Gravity.CENTER
+            gravity = Gravity.CENTER
         }
         
         val inputFreq = EditText(this).apply {
             hint = "Örn: 7.5"
             setHintTextColor(0xFF555555.toInt())
             setTextColor(0xFFFFFFFF.toInt())
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-            val params = LinearLayout.LayoutParams(250, LinearLayout.LayoutParams.WRAP_CONTENT)
-            layoutParams = params
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+            
+            // Layout params hatası giderildi
+            layoutParams = LinearLayout.LayoutParams(
+                300, 
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         }
         manualLayout.addView(inputFreq)
 
@@ -116,13 +116,13 @@ class MainActivity : AppCompatActivity() {
         manualLayout.addView(applyBtn)
         rootLayout.addView(manualLayout)
 
-        // Ana Başlat / Durdur Butonu
         val mainControlBtn = Button(this).apply {
             text = "SESİ BAŞLAT"
             setTextColor(0xFFFFFFFF.toInt())
             setBackgroundColor(0xFF03DAC5.toInt())
             textSize = 18f
             setPadding(40, 40, 40, 40)
+            
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
