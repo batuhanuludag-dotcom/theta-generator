@@ -19,7 +19,6 @@ jobs:
           rm -rf app build.gradle settings.gradle
           mkdir -p app/src/main/java/com/atlas/thetagen
           mkdir -p app/src/main/res/values
-          mkdir -p gradle/wrapper
 
           cat << 'EOF' > settings.gradle
           pluginManagement {
@@ -93,17 +92,19 @@ jobs:
 
           echo '<resources><string name="app_name">Theta Generator</string></resources>' > app/src/main/res/values/strings.xml
 
-      - name: Generate Local Gradle Wrapper
-        run: gradle wrapper --gradle-version 8.2
-
       - name: Move Active Kotlin Source Code
         run: |
           if [ -f MainActivity.kt ]; then
             mv MainActivity.kt app/src/main/java/com/atlas/thetagen/MainActivity.kt
           fi
 
+      - name: Setup Gradle 8.2 Environment
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.2'
+
       - name: Build Android APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: gradle assembleDebug
 
       - name: Upload APK Download Link
         uses: actions/upload-artifact@v4
