@@ -1,5 +1,6 @@
 package com.atlas.thetagen
 
+import android.app.Activity
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
@@ -11,11 +12,10 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import kotlin.concurrent.thread
 import kotlin.math.sin
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
     private var isPlaying = false
     private var audioTrack: AudioTrack? = null
     
@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Ana Layout Yapısı
         val rootLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
@@ -32,6 +33,7 @@ class MainActivity : AppCompatActivity() {
             setPadding(40, 60, 40, 40)
         }
 
+        // Frekans Bilgi Ekranı
         val infoTextView = TextView(this).apply {
             text = "Mod: Beklemede\nSol: 0 Hz | Sağ: 0 Hz (Fark: 0 Hz)"
             setTextColor(0xFF888888.toInt())
@@ -41,93 +43,99 @@ class MainActivity : AppCompatActivity() {
         }
         rootLayout.addView(infoTextView)
 
+        // Dinamik Taslak Buton Üretici Fonksiyonu
         fun createPresetButton(title: String, diff: Double, description: String) {
             val btn = Button(this).apply {
                 text = "$title ($diff Hz) - $description"
                 setTextColor(0xFFFFFFFF.toInt())
                 setBackgroundColor(0xFF1E1E1E.toInt())
-                setPadding(20, 30, 20, 30)
                 
                 val params = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
-                params.setMargins(0, 10, 0, 10)
+                params.setMargins(0, 8, 0, 8)
                 layoutParams = params
             }
             btn.setOnClickListener {
                 targetDifference = diff
                 updateFrequencies(infoTextView)
-                if (isPlaying) restartAudio()
-                Toast.makeText(this@MainActivity, "$title Seçildi", Toast.LENGTH_SHORT).show()
+                if (isPlaying) restartAudioEngine()
+                Toast.makeText(this@MainActivity, "$title Aktif", Toast.LENGTH_SHORT).show()
             }
             rootLayout.addView(btn)
         }
 
-        createPresetButton("DELTA", 2.5, "Derin Uyku & Yenilenme")
+        // Frekans Hazır Taslakları (Presets)
+        createPresetButton("DELTA", 2.5, "Derin Uyku & Hücresel Yenilenme")
         createPresetButton("THETA", 5.0, "Bilinçaltı & Derin Meditasyon")
-        createPresetButton("ALPHA", 10.0, "Hafif Odak & Rahatlama")
-        createPresetButton("BETA", 20.0, "Aktif Düşünme & Analitik Analiz")
+        createPresetButton("ALPHA", 10.0, "Hafif Odak & Gevşeme")
+        createPresetButton("BETA", 20.0, "Analitik Analiz & Karar Alma")
         createPresetButton("GAMMA", 40.0, "Yüksek İşlem & Maksimum Odak")
 
+        // Manuel Alan Başlığı
         val manualTitle = TextView(this).apply {
-            text = "\nVEYA MANUEL HEDEF FREKANS GİRİN (Hz):"
+            text = "\nVEYA MANUEL FREKANS GİRİN (0.1 - 50 Hz):"
             setTextColor(0xFFBB86FC.toInt())
             textSize = 14f
             setPadding(0, 20, 0, 10)
         }
         rootLayout.addView(manualTitle)
 
-        val manualLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-        }
-        
+        // Manuel Frekans Giriş Kutusu
         val inputFreq = EditText(this).apply {
-            hint = "Örn: 7.5"
+            hint = "Örn: 7.83"
             setHintTextColor(0xFF555555.toInt())
             setTextColor(0xFFFFFFFF.toInt())
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-            
-            // Layout params hatası giderildi
-            layoutParams = LinearLayout.LayoutParams(
-                300, 
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-        }
-        manualLayout.addView(inputFreq)
-
-        val applyBtn = Button(this).apply {
-            text = "Uygula"
-            setTextColor(0xFF000000.toInt())
-            setBackgroundColor(0xFFBB86FC.toInt())
-        }
-        applyBtn.setOnClickListener {
-            val value = inputFreq.text.toString().toDoubleOrNull()
-            if (value != null && value > 0 && value <= 50) {
-                targetDifference = value
-                updateFrequencies(infoTextView)
-                if (isPlaying) restartAudio()
-                Toast.makeText(this@MainActivity, "Manuel Frekans: $value Hz", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this@MainActivity, "Geçersiz değer! (0.1 - 50 Hz arası girin)", Toast.LENGTH_SHORT).show()
-            }
-        }
-        manualLayout.addView(applyBtn)
-        rootLayout.addView(manualLayout)
-
-        val mainControlBtn = Button(this).apply {
-            text = "SESİ BAŞLAT"
-            setTextColor(0xFFFFFFFF.toInt())
-            setBackgroundColor(0xFF03DAC5.toInt())
-            textSize = 18f
-            setPadding(40, 40, 40, 40)
+            gravity = Gravity.CENTER
             
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            params.setMargins(0, 50, 0, 0)
+            params.setMargins(0, 0, 0, 20)
+            layoutParams = params
+        }
+        rootLayout.addView(inputFreq)
+
+        // Manuel Girişi Uygulama Butonu
+        val applyBtn = Button(this).apply {
+            text = "Manuel Frekansı Uygula"
+            setTextColor(0xFF000000.toInt())
+            setBackgroundColor(0xFFBB86FC.toInt())
+            
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            layoutParams = params
+        }
+        applyBtn.setOnClickListener {
+            val value = inputFreq.text.toString().toDoubleOrNull()
+            if (value != null && value > 0.0 && value <= 50.0) {
+                targetDifference = value
+                updateFrequencies(infoTextView)
+                if (isPlaying) restartAudioEngine()
+                Toast.makeText(this@MainActivity, "Frekans $value Hz Yapıldı", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this@MainActivity, "Hata! 0.1 - 50 arası girin.", Toast.LENGTH_SHORT).show()
+            }
+        }
+        rootLayout.addView(applyBtn)
+
+        // Ana Kontrol (Aç / Kapa) Butonu
+        val mainControlBtn = Button(this).apply {
+            text = "SESİ BAŞLAT"
+            setTextColor(0xFFFFFFFF.toInt())
+            setBackgroundColor(0xFF03DAC5.toInt())
+            textSize = 18f
+            
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            params.setMargins(0, 40, 0, 0)
             layoutParams = params
         }
         
@@ -154,7 +162,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateFrequencies(tv: TextView) {
         val left = baseFrequency
         val right = baseFrequency + targetDifference
-        tv.text = "Aktif Frekans Ayarı\nSol Kulak: $left Hz | Sağ Kulak: $right Hz\n[ Beyin Hedefi: $targetDifference Hz ]"
+        tv.text = "Aktif Frekans Ayarı\nSol: $left Hz | Sağ: $right Hz\n[ Hedef Beyin Dalgası: $targetDifference Hz ]"
     }
 
     private fun startAudioEngine() {
@@ -187,8 +195,8 @@ class MainActivity : AppCompatActivity() {
                 for (i in 0 until numSamples) {
                     val t = sampleIndex / sampleRate.toDouble()
                     
-                    val valLeft = (sin(2 * Math.PI * freqLeft * t) * Short.MAX_VALUE * 0.8).toInt().toShort()
-                    val valRight = (sin(2 * Math.PI * freqRight * t) * Short.MAX_VALUE * 0.8).toInt().toShort()
+                    val valLeft = (sin(2 * Math.PI * freqLeft * t) * Short.MAX_VALUE * 0.7).toInt().toShort()
+                    val valRight = (sin(2 * Math.PI * freqRight * t) * Short.MAX_VALUE * 0.7).toInt().toShort()
                     
                     buffer[i * 2] = valLeft
                     buffer[i * 2 + 1] = valRight
@@ -202,9 +210,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun restartAudio() {
+    private fun restartAudioEngine() {
         isPlaying = false
-        Thread.sleep(50)
+        Thread.sleep(40)
         isPlaying = true
         startAudioEngine()
     }
