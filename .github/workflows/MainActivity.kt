@@ -25,7 +25,6 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Ana Layout Yapısı
         val rootLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
@@ -33,7 +32,6 @@ class MainActivity : Activity() {
             setPadding(40, 60, 40, 40)
         }
 
-        // Frekans Bilgi Ekranı
         val infoTextView = TextView(this).apply {
             text = "Mod: Beklemede\nSol: 0 Hz | Sağ: 0 Hz (Fark: 0 Hz)"
             setTextColor(0xFF888888.toInt())
@@ -43,7 +41,6 @@ class MainActivity : Activity() {
         }
         rootLayout.addView(infoTextView)
 
-        // Dinamik Taslak Buton Üretici Fonksiyonu
         fun createPresetButton(title: String, diff: Double, description: String) {
             val btn = Button(this).apply {
                 text = "$title ($diff Hz) - $description"
@@ -66,14 +63,12 @@ class MainActivity : Activity() {
             rootLayout.addView(btn)
         }
 
-        // Frekans Hazır Taslakları (Presets)
         createPresetButton("DELTA", 2.5, "Derin Uyku & Hücresel Yenilenme")
         createPresetButton("THETA", 5.0, "Bilinçaltı & Derin Meditasyon")
         createPresetButton("ALPHA", 10.0, "Hafif Odak & Gevşeme")
         createPresetButton("BETA", 20.0, "Analitik Analiz & Karar Alma")
         createPresetButton("GAMMA", 40.0, "Yüksek İşlem & Maksimum Odak")
 
-        // Manuel Alan Başlığı
         val manualTitle = TextView(this).apply {
             text = "\nVEYA MANUEL FREKANS GİRİN (0.1 - 50 Hz):"
             setTextColor(0xFFBB86FC.toInt())
@@ -82,7 +77,6 @@ class MainActivity : Activity() {
         }
         rootLayout.addView(manualTitle)
 
-        // Manuel Frekans Giriş Kutusu
         val inputFreq = EditText(this).apply {
             hint = "Örn: 7.83"
             setHintTextColor(0xFF555555.toInt())
@@ -99,7 +93,6 @@ class MainActivity : Activity() {
         }
         rootLayout.addView(inputFreq)
 
-        // Manuel Girişi Uygulama Butonu
         val applyBtn = Button(this).apply {
             text = "Manuel Frekansı Uygula"
             setTextColor(0xFF000000.toInt())
@@ -124,7 +117,6 @@ class MainActivity : Activity() {
         }
         rootLayout.addView(applyBtn)
 
-        // Ana Kontrol (Aç / Kapa) Butonu
         val mainControlBtn = Button(this).apply {
             text = "SESİ BAŞLAT"
             setTextColor(0xFFFFFFFF.toInt())
