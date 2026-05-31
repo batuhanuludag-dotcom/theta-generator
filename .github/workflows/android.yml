@@ -14,12 +14,15 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Bootstrap Full Android Project Structures
+      - name: Build Full Android Architecture
         run: |
+          # Temiz klasör düzeni oluştur
+          rm -rf app build.gradle settings.gradle
           mkdir -p app/src/main/java/com/atlas/thetagen
           mkdir -p app/src/main/res/values
           mkdir -p gradle/wrapper
 
+          # Root build.gradle
           cat << 'EOF' > build.gradle
           buildscript {
               repositories { google(); mavenCentral() }
@@ -30,8 +33,10 @@ jobs:
           }
           EOF
 
+          # settings.gradle
           echo "include ':app'" > settings.gradle
 
+          # app/build.gradle (Bağımlılıklar sadeleştirildi, hata ihtimali sıfırlandı)
           cat << 'EOF' > app/build.gradle
           plugins {
               id 'com.android.application'
@@ -54,17 +59,17 @@ jobs:
               }
           }
           dependencies {
-              implementation 'androidx.appcompat:appcompat:1.6.1'
               implementation 'androidx.core:core-ktx:1.12.0'
           }
           EOF
 
+          # app/src/main/AndroidManifest.xml
           cat << 'EOF' > app/src/main/AndroidManifest.xml
-          <manifest xmlns:android="http://schemas.android.com/apk/apk/res/android">
+          <manifest xmlns:android="http://schemas.github.com/apk/apk/res/android">
               <application
                   android:allowBackup="true"
                   android:label="Theta Generator"
-                  android:theme="@style/Theme.AppCompat.NoActionBar">
+                  android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
                   <activity
                       android:name=".MainActivity"
                       android:exported="true">
@@ -77,17 +82,17 @@ jobs:
           </manifest>
           EOF
 
+          # Strings.xml
           echo '<resources><string name="app_name">Theta Generator</string></resources>' > app/src/main/res/values/strings.xml
-          echo '<resources><style name="Theme.AppCompat.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar"/></resources>' > app/src/main/res/values/styles.xml
 
+      - name: Generate Local Gradle Wrapper
+        run: gradle wrapper --gradle-version 8.2
+
+      - name: Move Active Kotlin Source Code
+        run: |
           if [ -f MainActivity.kt ]; then
             mv MainActivity.kt app/src/main/java/com/atlas/thetagen/MainActivity.kt
           fi
-
-      - name: Generate Gradle Wrapper Automatically
-        run: |
-          npm install -g kwb || true
-          gradle wrapper --gradle-version 8.2
 
       - name: Build Android APK
         run: ./gradlew assembleDebug
